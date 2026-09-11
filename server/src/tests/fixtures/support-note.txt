@@ -1,0 +1,1 @@
+Attachment fixture for helpdesk API tests.
