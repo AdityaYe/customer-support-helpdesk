@@ -154,6 +154,15 @@ Notifications are:
 
 This keeps notification processing separate from the main request cycle.
 
+## Attachments
+
+- Multi-file ticket attachments
+- File type and size validation
+- Cloudinary object storage
+- Ticket-level authorization
+- Internal attachment visibility controls
+- Protected attachment access
+
 ## Setup
 
 ### Prerequisites
@@ -187,11 +196,13 @@ PORT=5000
 MONGODB_URI=mongodb://127.0.0.1:27017/helpdesk
 JWT_SECRET=replace-with-a-strong-secret
 CLIENT_URL=http://localhost:5173
-UPLOAD_DIR=uploads
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 RESEND_API_KEY=your-resend-api-key
 RESEND_FROM_EMAIL=onboarding@resend.dev
+CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+CLOUDINARY_API_KEY=your-cloudinary-api-key
+CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 ```
 
 #### Client
@@ -365,10 +376,9 @@ Before deploying to production:
 
 ## Current Limitations
 
-- No email notification provider
-- File uploads currently use local disk storage
 - Admin interface is intentionally lightweight
 - No production deployment configuration is included
+- Email and Cloudinary integrations require their respective provider accounts and credentials
 
 ## Project Status
 
@@ -384,6 +394,8 @@ The project currently includes:
 - Knowledge base management
 - Saved replies
 - Ticket activity and internal notes
+- Resend email notifications
+- Cloudinary attachment storage
 - Backend integration tests
 
 ## License

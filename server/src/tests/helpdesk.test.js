@@ -1,9 +1,15 @@
-import fs from "fs";
-import os from "os";
 import path from "path";
 import mongoose from "mongoose";
 import request from "supertest";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import app from "../app.js";
 import Attachment from "../models/Attachment.js";
 import Category from "../models/Category.js";
@@ -21,9 +27,25 @@ import redisConnection from "../config/redis.js";
 import { notificationQueue } from "../queues/notificationQueue.js";
 import { slaQueue } from "../queues/slaQueue.js";
 
+vi.mock("../config/cloudinary.js", () => ({
+  default: {
+    uploader: {
+      upload_stream: vi.fn((options, callback) => {
+        callback(null, {
+          public_id: `${options.folder}/test-file`,
+          secure_url: "https://res.cloudinary.com/test/raw/upload/test-file",
+        });
+
+        return {
+          end: vi.fn(),
+        };
+      }),
+    },
+  },
+}));
+
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 process.env.CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
-process.env.UPLOAD_DIR = path.join(os.tmpdir(), "helpdesk-test-uploads");
 
 let notificationWorker;
 let slaWorker;
@@ -179,10 +201,10 @@ const waitForNotifications = async (filter, expectedCount = 1) => {
 
 beforeAll(async () => {
   await mongoose.connect(
-    process.env.MONGODB_TEST_URI ||
-      'mongodb://127.0.0.1:27017/helpdesk_test'
+    process.env.MONGODB_TEST_URI || "mongodb://127.0.0.1:27017/helpdesk_test",
   );
-  notificationWorker = (await import("../workers/notificationWorker.js")).default;
+  notificationWorker = (await import("../workers/notificationWorker.js"))
+    .default;
   slaWorker = (await import("../workers/slaWorker.js")).default;
 });
 
@@ -229,58 +251,49 @@ describe("auth", () => {
 });
 
 describe("tickets", () => {
+  it("prevents agents from taking or modifying another agent ticket", async () => {
+    const customer = await login("customer1@example.com");
 
-  it('prevents agents from taking or modifying another agent ticket', async () => {
-  const customer = await login(
-    'customer1@example.com'
-  );
+    const billingAgent = await login("billing.agent@example.com");
 
-  const billingAgent = await login(
-    'billing.agent@example.com'
-  );
+    const billingAgentTwo = await login("billing.agent2@example.com");
 
-  const billingAgentTwo = await login(
-    'billing.agent2@example.com'
-  );
+    const ticket = await createTicket(customer);
 
-  const ticket = await createTicket(customer);
+    await billingAgent
+      .post(`/api/tickets/${ticket._id}/assign`)
+      .send({})
+      .expect(200);
 
-  await billingAgent
-    .post(`/api/tickets/${ticket._id}/assign`)
-    .send({})
-    .expect(200);
+    await billingAgentTwo.get(`/api/tickets/${ticket._id}`).expect(200);
 
-  await billingAgentTwo
-    .get(`/api/tickets/${ticket._id}`)
-    .expect(200);
+    await billingAgentTwo
+      .post(`/api/tickets/${ticket._id}/assign`)
+      .send({})
+      .expect(403);
 
-  await billingAgentTwo
-    .post(`/api/tickets/${ticket._id}/assign`)
-    .send({})
-    .expect(403);
+    await billingAgentTwo
+      .post(`/api/tickets/${ticket._id}/messages`)
+      .send({
+        message: "I should not be able to reply",
+      })
+      .expect(403);
 
-  await billingAgentTwo
-    .post(`/api/tickets/${ticket._id}/messages`)
-    .send({
-      message: 'I should not be able to reply'
-    })
-    .expect(403);
+    await billingAgentTwo
+      .patch(`/api/tickets/${ticket._id}/priority`)
+      .send({ priority: "URGENT" })
+      .expect(403);
 
-  await billingAgentTwo
-    .patch(`/api/tickets/${ticket._id}/priority`)
-    .send({ priority: 'URGENT' })
-    .expect(403);
+    await billingAgentTwo
+      .patch(`/api/tickets/${ticket._id}/status`)
+      .send({ status: "IN_PROGRESS" })
+      .expect(403);
 
-  await billingAgentTwo
-    .patch(`/api/tickets/${ticket._id}/status`)
-    .send({ status: 'IN_PROGRESS' })
-    .expect(403);
-
-  await billingAgent
-    .patch(`/api/tickets/${ticket._id}/priority`)
-    .send({ priority: 'HIGH' })
-    .expect(200);
-});
+    await billingAgent
+      .patch(`/api/tickets/${ticket._id}/priority`)
+      .send({ priority: "HIGH" })
+      .expect(200);
+  });
 
   it("creates routed tickets with unique atomic ticket numbers and SLA deadlines", async () => {
     const customer = await login("customer1@example.com");
@@ -555,19 +568,19 @@ describe("notifications, attachments, satisfaction, admin, and knowledge base", 
       .post(`/api/tickets/${ticket._id}/attachments`)
       .attach("attachments", fixture)
       .expect(201);
+
     const attachmentId = upload.body.data[0]._id;
+
     await customer
       .get(`/api/tickets/${ticket._id}/attachments/${attachmentId}`)
-      .expect(200);
+      .expect(302);
+
     await otherCustomer
       .get(`/api/tickets/${ticket._id}/attachments/${attachmentId}`)
       .expect(403);
-
-    const storedPath = upload.body.data[0].path;
-    if (storedPath && fs.existsSync(storedPath)) fs.unlinkSync(storedPath);
   });
 
-  it("returns a clean error when an attachment file is missing", async () => {
+  it("returns a clean error when an attachment file is unavailable", async () => {
     const customer = await login("customer1@example.com");
     const ticket = await createTicket(customer);
     const fixture = path.resolve("src/tests/fixtures/support-note.txt");
@@ -576,14 +589,16 @@ describe("notifications, attachments, satisfaction, admin, and knowledge base", 
       .post(`/api/tickets/${ticket._id}/attachments`)
       .attach("attachments", fixture)
       .expect(201);
+
     const attachment = upload.body.data[0];
-    if (attachment.path && fs.existsSync(attachment.path))
-      fs.unlinkSync(attachment.path);
+
+    await Attachment.updateOne({ _id: attachment._id }, { $set: { path: "" } });
 
     const res = await customer
       .get(`/api/tickets/${ticket._id}/attachments/${attachment._id}`)
       .expect(404);
-    expect(res.body.message).toBe("Attachment file is missing");
+
+    expect(res.body.message).toBe("Attachment file is unavailable");
   });
 
   it("allows eligible satisfaction once and blocks unauthorized feedback", async () => {
