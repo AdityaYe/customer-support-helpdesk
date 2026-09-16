@@ -136,15 +136,6 @@ export default function AppLayout() {
                 Helpdesk
               </span>
             </Link>
-
-            {isAuthenticated && isSupportUser && (
-              <nav className="hidden items-center gap-0.5 md:flex">
-                <NavLink to={dashboardPath} className={navLinkClass}>
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </NavLink>
-              </nav>
-            )}
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
@@ -180,6 +171,13 @@ export default function AppLayout() {
                   >
                     <Ticket className="h-4 w-4" />
                     My tickets
+                  </NavLink>
+                )}
+
+                {isSupportUser && (
+                  <NavLink to={dashboardPath} className={navLinkClass}>
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
                   </NavLink>
                 )}
 
