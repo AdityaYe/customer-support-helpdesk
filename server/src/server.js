@@ -19,8 +19,8 @@ initSocket(server);
 
 connectDB()
   .then(() => {
-    server.listen(port, () => {
-      console.log(`Server running on port ${port}`);
+    server.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on 0.0.0.0:${port}`);
     });
   })
   .catch((error) => {
