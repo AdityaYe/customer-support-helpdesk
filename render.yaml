@@ -12,13 +12,16 @@ services:
         sync: false
 
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
 
       - key: CLIENT_URL
         sync: false
 
       - key: REDIS_URL
-        sync: false
+        fromService:
+          name: helpdesk-redis
+          type: keyvalue
+          property: connectionString
 
       - key: RESEND_API_KEY
         sync: false
@@ -34,3 +37,9 @@ services:
 
       - key: CLOUDINARY_API_SECRET
         sync: false
+
+  - type: keyvalue
+    name: helpdesk-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
