@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: helpdesk-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+
+      - key: JWT_SECRET
+        sync: false
+
+      - key: CLIENT_URL
+        sync: false
+
+      - key: REDIS_URL
+        sync: false
+
+      - key: RESEND_API_KEY
+        sync: false
+
+      - key: RESEND_FROM_EMAIL
+        sync: false
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
