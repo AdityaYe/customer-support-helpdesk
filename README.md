@@ -196,6 +196,7 @@ PORT=5000
 MONGODB_URI=mongodb://127.0.0.1:27017/helpdesk
 JWT_SECRET=replace-with-a-strong-secret
 CLIENT_URL=http://localhost:5173
+REDIS_URL=
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 RESEND_API_KEY=your-resend-api-key
