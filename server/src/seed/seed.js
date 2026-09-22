@@ -66,27 +66,7 @@ const requestTypeData = [
     "Billing",
     "What to do when a payment fails",
     "Check that your card details are correct, your bank has approved the transaction, and your billing address matches your payment method.",
-    [
-      {
-        name: "transactionId",
-        label: "Transaction ID",
-        type: "text",
-        required: false,
-      },
-      {
-        name: "amount",
-        label: "Amount",
-        type: "number",
-        required: false,
-      },
-      {
-        name: "paymentMethod",
-        label: "Payment Method",
-        type: "select",
-        required: true,
-        options: ["Card", "UPI", "Net Banking", "Wallet", "Other"],
-      },
-    ],
+    [],
   ],
   [
     "Payment charged twice",
@@ -95,20 +75,7 @@ const requestTypeData = [
     "Billing",
     "Duplicate charge help",
     "Duplicate charges can sometimes be temporary authorizations. If both charges remain, support can investigate the transaction references.",
-    [
-      {
-        name: "firstTransactionId",
-        label: "First Transaction ID",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "secondTransactionId",
-        label: "Second Transaction ID",
-        type: "text",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Refund request",
@@ -117,20 +84,7 @@ const requestTypeData = [
     "Billing",
     "Refund request policy",
     "Refund eligibility depends on the product, order state, and timing.",
-    [
-      {
-        name: "orderId",
-        label: "Order ID",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "refundReason",
-        label: "Refund Reason",
-        type: "textarea",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Payment pending",
@@ -139,14 +93,7 @@ const requestTypeData = [
     "Billing",
     "Pending payment guidance",
     "Pending payments usually resolve automatically once the payment provider confirms the transaction.",
-    [
-      {
-        name: "transactionId",
-        label: "Transaction ID",
-        type: "text",
-        required: true,
-      },
-    ],
+    [],
   ],
 
   [
@@ -174,14 +121,7 @@ const requestTypeData = [
     "Account Support",
     "Changing account information",
     "Most profile information can be changed in account settings. Protected changes may require verification.",
-    [
-      {
-        name: "changeRequested",
-        label: "Information to Change",
-        type: "textarea",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Website not working",
@@ -190,20 +130,7 @@ const requestTypeData = [
     "Technical Support",
     "Website issue checks",
     "Try refreshing, clearing cache, disabling browser extensions, or using another browser.",
-    [
-      {
-        name: "url",
-        label: "Affected URL",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "browser",
-        label: "Browser",
-        type: "text",
-        required: false,
-      },
-    ],
+    [],
   ],
   [
     "Application error",
@@ -212,20 +139,7 @@ const requestTypeData = [
     "Technical Support",
     "Application error help",
     "Copy the exact error message, note what you were doing before it appeared, and include device details.",
-    [
-      {
-        name: "errorMessage",
-        label: "Error Message",
-        type: "textarea",
-        required: true,
-      },
-      {
-        name: "device",
-        label: "Device",
-        type: "text",
-        required: false,
-      },
-    ],
+    [],
   ],
   [
     "Bug report",
@@ -234,20 +148,7 @@ const requestTypeData = [
     "Technical Support",
     "How to report a bug",
     "A useful bug report includes steps to reproduce, expected result, actual result, and screenshots.",
-    [
-      {
-        name: "stepsToReproduce",
-        label: "Steps to Reproduce",
-        type: "textarea",
-        required: true,
-      },
-      {
-        name: "expectedResult",
-        label: "Expected Result",
-        type: "textarea",
-        required: true,
-      },
-    ],
+    [],
   ],
 
   [
@@ -257,14 +158,7 @@ const requestTypeData = [
     "Order Support",
     "Order problem support",
     "Check the order details and delivery status first.",
-    [
-      {
-        name: "orderId",
-        label: "Order ID",
-        type: "text",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Delivery issue",
@@ -273,20 +167,7 @@ const requestTypeData = [
     "Order Support",
     "Delivery issue help",
     "Delivery updates can lag behind the carrier. Share the order ID and tracking number.",
-    [
-      {
-        name: "orderId",
-        label: "Order ID",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "trackingNumber",
-        label: "Tracking Number",
-        type: "text",
-        required: false,
-      },
-    ],
+    [],
   ],
   [
     "Cancel order",
@@ -294,15 +175,8 @@ const requestTypeData = [
     "Orders and delivery",
     "Order Support",
     "Canceling an order",
-    "Orders can usually be canceled before fulfillment begins.",
-    [
-      {
-        name: "orderId",
-        label: "Order ID",
-        type: "text",
-        required: true,
-      },
-    ],
+    "Orders can usually be canceled before fulfillment.",
+    [],
   ],
 
   [
@@ -312,14 +186,7 @@ const requestTypeData = [
     "Security",
     "Suspicious activity steps",
     "Change your password immediately, sign out of other sessions, and contact support.",
-    [
-      {
-        name: "activityDetails",
-        label: "Activity Details",
-        type: "textarea",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Unrecognized activity",
@@ -328,20 +195,7 @@ const requestTypeData = [
     "Security",
     "Unrecognized activity help",
     "Review recent sign-ins and account changes. The security team can investigate unfamiliar activity.",
-    [
-      {
-        name: "activityDate",
-        label: "Approximate Activity Date",
-        type: "date",
-        required: false,
-      },
-      {
-        name: "activityDetails",
-        label: "Activity Details",
-        type: "textarea",
-        required: true,
-      },
-    ],
+    [],
   ],
 ];
 
@@ -399,91 +253,6 @@ const ticketDescriptions = [
   "I noticed this after making a recent change to my account. Please investigate the affected record and confirm whether anything needs to be corrected.",
   "Everything worked previously, but the same workflow is now failing. I can provide additional details if required.",
 ];
-
-const customFieldFor = (requestTypeName, index) => {
-  switch (requestTypeName) {
-    case "Payment failed":
-      return {
-        transactionId: `TXN-${100000 + index}`,
-        amount: 49 + index * 10,
-        paymentMethod: ["Card", "UPI", "Net Banking", "Wallet"][index % 4],
-      };
-
-    case "Payment charged twice":
-      return {
-        firstTransactionId: `TXN-${200000 + index}`,
-        secondTransactionId: `TXN-${210000 + index}`,
-      };
-
-    case "Refund request":
-      return {
-        orderId: `ORD-${300000 + index}`,
-        refundReason: "The purchase did not meet expectations.",
-      };
-
-    case "Payment pending":
-      return {
-        transactionId: `TXN-${400000 + index}`,
-      };
-
-    case "Cannot log in":
-    case "Account locked":
-      return {};
-
-        case "Change account information":
-      return {
-        changeRequested: "Update my phone number and profile information.",
-      };
-
-    case "Website not working":
-      return {
-        url: "https://example.com/checkout",
-        browser: ["Chrome", "Firefox", "Edge", "Safari"][index % 4],
-      };
-
-    case "Application error":
-      return {
-        errorMessage: "Unexpected application error while submitting the form.",
-        device: ["Windows laptop", "MacBook", "Android phone", "iPhone"][
-          index % 4
-        ],
-      };
-
-    case "Bug report":
-      return {
-        stepsToReproduce:
-          "Open the form, enter the required details, and submit.",
-        expectedResult: "The request should be submitted successfully.",
-      };
-
-    case "Order problem":
-    case "Cancel order":
-      return {
-        orderId: `ORD-${500000 + index}`,
-      };
-
-    case "Delivery issue":
-      return {
-        orderId: `ORD-${600000 + index}`,
-        trackingNumber: `TRK-${700000 + index}`,
-      };
-
-    case "Suspicious account activity":
-      return {
-        activityDetails: "I noticed a login from a device I do not recognize.",
-      };
-
-    case "Unrecognized activity":
-      return {
-        activityDate: new Date(Date.now() - 86400000 * 2),
-        activityDetails:
-          "An account activity entry appeared that I did not perform.",
-      };
-
-    default:
-      return {};
-  }
-};
 
 const seed = async () => {
   await connectDB();
@@ -858,7 +627,7 @@ const seed = async () => {
 
       description: ticketDescriptions[index % ticketDescriptions.length],
 
-      customFields: customFieldFor(requestTypeName, index),
+      customFields: {},
 
       priority,
       status,

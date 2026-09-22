@@ -2,17 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
-  CheckCircle2,
   ChevronRight,
   Clock3,
   FileText,
   LifeBuoy,
   Paperclip,
   Send,
-  ShieldCheck,
   Upload,
   X,
 } from "lucide-react";
+
 import api from "../services/api.js";
 import LoadingState from "../components/LoadingState.jsx";
 import ErrorState from "../components/ErrorState.jsx";
@@ -20,6 +19,52 @@ import { useAuth } from "../context/AuthContext.jsx";
 
 const MAX_FILES = 3;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+const requestTypeGuidance = {
+  "Payment failed":
+    "Please include the transaction ID, amount, and payment method if available.",
+
+  "Payment charged twice": "Please include both transaction IDs if available.",
+
+  "Refund request":
+    "Please include your order ID and briefly explain why you are requesting a refund.",
+
+  "Payment pending":
+    "Please include the transaction ID if available and mention when the payment was made.",
+
+  "Cannot log in":
+    "Please include the account email you are having trouble accessing.",
+
+  "Account locked":
+    "Please include the affected account email and briefly describe when the account became locked.",
+
+  "Change account information":
+    "Please specify which account information you want to change.",
+
+  "Website not working":
+    "Please mention the affected page or URL and which browser you are using.",
+
+  "Application error":
+    "Please include the exact error message and the device or platform where it occurred.",
+
+  "Bug report":
+    "Please describe the steps that caused the issue and what you expected to happen.",
+
+  "Order problem":
+    "Please include your order ID and describe what is incorrect.",
+
+  "Delivery issue":
+    "Please include your order ID, tracking number, and describe the delivery issue.",
+
+  "Cancel order":
+    "Please include your order ID and confirm that you want to cancel the order.",
+
+  "Suspicious account activity":
+    "Please describe the suspicious activity, including anything unusual you noticed.",
+
+  "Unrecognized activity":
+    "Please describe the activity you do not recognize and approximately when you noticed it.",
+};
 
 export default function ContactSupportPage() {
   const { id } = useParams();
@@ -100,12 +145,20 @@ export default function ContactSupportPage() {
   }, [id, location.state]);
 
   const customFieldDefinitions = useMemo(() => {
-    if (Array.isArray(requestType?.formFields)) return requestType.formFields;
-    if (Array.isArray(requestType?.customFields)) return requestType.customFields;
+    if (Array.isArray(requestType?.formFields)) {
+      return requestType.formFields;
+    }
+
+    if (Array.isArray(requestType?.customFields)) {
+      return requestType.customFields;
+    }
+
     return [];
   }, [requestType]);
 
   const category = requestType?.category;
+
+  const guidanceText = requestType ? requestTypeGuidance[requestType.name] : "";
 
   const updateField = (field, value) => {
     setForm((current) => ({
@@ -237,83 +290,88 @@ export default function ContactSupportPage() {
   };
 
   if (loading) {
-    return <LoadingState />;
+    return <LoadingState label="Loading support request..." />;
   }
 
   if (pageError || !requestType) {
     return (
-      <div className="page-container">
+      <div className="page-container py-6">
         <ErrorState message={pageError || "Request type not found."} />
       </div>
     );
   }
 
   return (
-    <div className="page-container max-w-6xl">
-      <div className="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <Link to="/help" className="transition hover:text-slate-900">
+    <div className="page-container w-full !max-w-6xl pb-8 pt-4 sm:pt-5">
+      <nav
+        aria-label="Breadcrumb"
+        className="mb-5 flex flex-wrap items-center gap-1.5 text-sm"
+      >
+        <Link
+          to="/"
+          className="font-medium text-slate-500 transition hover:text-teal-700"
+        >
           Help Center
         </Link>
 
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
 
-        {category && (
+        {category?._id ? (
           <>
             <Link
               to={`/categories/${category._id}`}
-              className="transition hover:text-slate-900"
+              className="font-medium text-slate-500 transition hover:text-teal-700"
             >
               {category.name}
             </Link>
-            <ChevronRight className="h-4 w-4" />
+
+            <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
           </>
-        )}
+        ) : null}
 
-        <span className="font-medium text-slate-900">Contact support</span>
-      </div>
+        <span className="truncate font-semibold text-slate-800">
+          Contact support
+        </span>
+      </nav>
 
-      <div className="mb-8">
+      <div className="mb-5">
         <Link
-          to={category ? `/categories/${category._id}` : "/help"}
-          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950"
+          to={category ? `/categories/${category._id}` : "/"}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-teal-700"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to help center
+          Back to category
         </Link>
+      </div>
 
-        <div className="surface overflow-hidden">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="max-w-3xl">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                {requestType.name}
-              </h1>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
+        <main className="min-w-0">
+          <div className="surface overflow-hidden">
+            <div className="border-b border-slate-100 bg-gradient-to-br from-teal-50/70 via-white to-white px-6 py-6 sm:px-7 sm:py-7">
+              <div className="px-2 sm:px-3">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                  {requestType.name}
+                </h1>
 
-              {requestType.description && (
-                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                  {requestType.description}
-                </p>
-              )}
+                {requestType.description && (
+                  <p className="mt-2.5 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                    {requestType.description}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {requestType.department?.name && (
-              <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
-                <span className="h-2 w-2 rounded-full bg-teal-500" />
-                {requestType.department.name}
-              </div>
-            )}
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_300px]">
-              <div className="min-w-0 space-y-8">
+            <form onSubmit={handleSubmit}>
+              <div className="px-6 py-6 sm:px-7 sm:py-7">
                 <section>
                   <div className="mb-5">
-                    <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                      Step 1
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
                       Your details
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                      We&apos;ll use these details to follow up on your request.
-                    </p>
                   </div>
 
                   <div className="grid gap-5 sm:grid-cols-2">
@@ -321,6 +379,7 @@ export default function ContactSupportPage() {
                       <span className="mb-2 block text-sm font-semibold text-slate-700">
                         Name
                       </span>
+
                       <input
                         className="field"
                         value={form.name}
@@ -336,6 +395,7 @@ export default function ContactSupportPage() {
                       <span className="mb-2 block text-sm font-semibold text-slate-700">
                         Email
                       </span>
+
                       <input
                         type="email"
                         className="field"
@@ -350,15 +410,15 @@ export default function ContactSupportPage() {
                   </div>
                 </section>
 
-                <section className="border-t border-slate-200 pt-8">
+                <section className="mt-8 border-t border-slate-100 pt-8">
                   <div className="mb-5">
-                    <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
-                      Request details
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Include enough detail for the support team to understand
-                      the issue without needing to start from scratch.
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                      Step 2
                     </p>
+
+                    <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
+                      Tell us about the issue
+                    </h2>
                   </div>
 
                   <div className="space-y-5">
@@ -366,6 +426,7 @@ export default function ContactSupportPage() {
                       <span className="mb-2 block text-sm font-semibold text-slate-700">
                         Subject
                       </span>
+
                       <input
                         className="field"
                         value={form.subject}
@@ -382,6 +443,7 @@ export default function ContactSupportPage() {
                       <span className="mb-2 block text-sm font-semibold text-slate-700">
                         Description
                       </span>
+
                       <textarea
                         className="field min-h-[180px] resize-y"
                         value={form.description}
@@ -391,22 +453,22 @@ export default function ContactSupportPage() {
                         placeholder="Describe what you were trying to do, what happened, and any relevant details."
                         required
                       />
+
+                      {guidanceText && (
+                        <p className="mt-2 text-xs italic leading-5 text-slate-400">
+                          {guidanceText}
+                        </p>
+                      )}
                     </label>
                   </div>
                 </section>
 
                 {customFieldDefinitions.length > 0 && (
-                  <section className="border-t border-slate-200 pt-8">
+                  <section className="mt-8 border-t border-slate-100 pt-8">
                     <div className="mb-5">
-                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
-                        Additional information
-                      </p>
-                      <h2 className="mt-1 text-xl font-bold text-slate-950">
-                        A few more details
+                      <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                        Additional details
                       </h2>
-                      <p className="mt-1 text-sm text-slate-500">
-                        These fields help route and resolve your request faster.
-                      </p>
                     </div>
 
                     <div className="grid gap-5 sm:grid-cols-2">
@@ -417,6 +479,7 @@ export default function ContactSupportPage() {
                         if (!fieldName) return null;
 
                         const label = field.label || field.name || field.key;
+
                         const value = customFields[fieldName] ?? "";
 
                         if (
@@ -430,6 +493,7 @@ export default function ContactSupportPage() {
                             >
                               <span className="mb-2 block text-sm font-semibold text-slate-700">
                                 {label}
+
                                 {field.required && (
                                   <span className="ml-1 text-rose-500">*</span>
                                 )}
@@ -459,6 +523,7 @@ export default function ContactSupportPage() {
                             <label key={fieldName} className="block">
                               <span className="mb-2 block text-sm font-semibold text-slate-700">
                                 {label}
+
                                 {field.required && (
                                   <span className="ml-1 text-rose-500">*</span>
                                 )}
@@ -506,6 +571,7 @@ export default function ContactSupportPage() {
                           <label key={fieldName} className="block">
                             <span className="mb-2 block text-sm font-semibold text-slate-700">
                               {label}
+
                               {field.required && (
                                 <span className="ml-1 text-rose-500">*</span>
                               )}
@@ -527,13 +593,17 @@ export default function ContactSupportPage() {
                   </section>
                 )}
 
-                <section className="border-t border-slate-200 pt-8">
+                <section className="mt-8 border-t border-slate-100 pt-8">
                   <div className="mb-5">
-                    <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                      Step 3
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
                       Attachments
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
                       Screenshots, documents, or other files that help explain
                       the issue.
                     </p>
@@ -590,6 +660,7 @@ export default function ContactSupportPage() {
                               <p className="truncate text-sm font-semibold text-slate-800">
                                 {file.name}
                               </p>
+
                               <p className="text-xs text-slate-500">
                                 {(file.size / 1024 / 1024).toFixed(2)} MB
                               </p>
@@ -611,28 +682,31 @@ export default function ContactSupportPage() {
                 </section>
 
                 {submitError && (
-                  <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-rose-500" />
+                  <div className="mt-6 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-rose-500" />
                     <span>{submitError}</span>
                   </div>
                 )}
 
-                <div className="flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-                      <CheckCircle2 className="h-4 w-4" />
+                <div className="mt-8 flex flex-col gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-teal-700 shadow-sm ring-1 ring-teal-100">
+                      <Clock3 className="h-4 w-4" />
                     </div>
 
-                    <p className="max-w-md text-xs leading-5 text-slate-500">
-                      Your request will be routed to the appropriate support
-                      team. You&apos;ll be able to track updates from your
-                      ticket.
+                    <p className="text-sm leading-5 text-slate-600">
+                      <span className="font-semibold text-slate-900">
+                        Expected response time:
+                      </span>{" "}
+                      A support agent will typically send the first response
+                      within 1–24 hours, depending on the priority of your
+                      request.
                     </p>
                   </div>
 
                   <button
                     type="submit"
-                    className="btn-primary min-h-11 px-6"
+                    className="btn-primary min-h-11 shrink-0 px-6"
                     disabled={submitting}
                   >
                     <Send className="h-4 w-4" />
@@ -640,87 +714,136 @@ export default function ContactSupportPage() {
                   </button>
                 </div>
               </div>
+            </form>
+          </div>
 
-              <aside className="lg:sticky lg:top-24 lg:self-start">
-                <div className="surface-soft p-5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
-                    <LifeBuoy className="h-5 w-5" />
-                  </div>
+          <div className="mt-4">
+            <Link to={`/requests/${requestType._id}`} className="btn-secondary">
+              <ArrowLeft className="h-4 w-4" />
+              Back to article
+            </Link>
+          </div>
+        </main>
 
-                  <h2 className="mt-4 text-lg font-bold text-slate-950">
-                    What happens next?
-                  </h2>
+        <aside className="space-y-4">
+          <div className="surface-soft p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                <LifeBuoy className="h-5 w-5" />
+              </div>
 
-                  <div className="mt-5 space-y-5">
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
-                        1
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          Your request is created
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">
-                          A ticket number will be assigned to your request.
-                        </p>
-                      </div>
-                    </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                  Your request
+                </p>
 
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
-                        2
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          Support reviews it
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">
-                          The request is routed to the relevant team.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
-                        3
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          You get updates
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">
-                          Follow the conversation and status from your ticket.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 border-t border-slate-200 pt-5">
-                    <div className="flex items-start gap-3">
-                      <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          Need to add something later?
-                        </p>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">
-                          You can continue the conversation after the ticket is
-                          created.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-start gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200">
-                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
-                    <p className="text-xs leading-5 text-slate-500">
-                      Only include information relevant to your support request.
-                    </p>
-                  </div>
-                </div>
-              </aside>
+                <p className="mt-0.5 text-sm font-bold text-slate-900">
+                  {requestType.name}
+                </p>
+              </div>
             </div>
-          </form>
-        </div>
+
+            <dl className="mt-4 space-y-3 border-t border-slate-200 pt-4 text-sm">
+              {category?.name ? (
+                <div>
+                  <dt className="text-xs font-medium text-slate-400">
+                    Category
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-700">
+                    {category.name}
+                  </dd>
+                </div>
+              ) : null}
+
+              {requestType.department?.name ? (
+                <div>
+                  <dt className="text-xs font-medium text-slate-400">
+                    Support team
+                  </dt>
+
+                  <dd className="mt-1 font-semibold text-slate-700">
+                    {requestType.department.name}
+                  </dd>
+                </div>
+              ) : null}
+
+              <div>
+                <dt className="text-xs font-medium text-slate-400">
+                  Attachments
+                </dt>
+
+                <dd className="mt-1 font-semibold text-slate-700">
+                  Up to {MAX_FILES} files
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="surface-soft p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-teal-700 shadow-sm ring-1 ring-slate-200">
+                <Clock3 className="h-5 w-5" />
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                  What happens next?
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                  1
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    Request created
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    A ticket number will be assigned to your request.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                  2
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    Support reviews it
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    The request is routed to the relevant support team.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-slate-700 ring-1 ring-slate-200">
+                  3
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    You get updates
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Follow the conversation and status from your ticket.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );
