@@ -156,14 +156,7 @@ const requestTypeData = [
     "Account Support",
     "Login troubleshooting",
     "Reset your password, confirm you are using the correct email, and clear browser cookies.",
-    [
-      {
-        name: "accountEmail",
-        label: "Account Email",
-        type: "text",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Account locked",
@@ -172,14 +165,7 @@ const requestTypeData = [
     "Account Support",
     "Locked account help",
     "Accounts may be locked after repeated failed login attempts or unusual activity.",
-    [
-      {
-        name: "accountEmail",
-        label: "Account Email",
-        type: "text",
-        required: true,
-      },
-    ],
+    [],
   ],
   [
     "Change account information",
@@ -197,7 +183,6 @@ const requestTypeData = [
       },
     ],
   ],
-
   [
     "Website not working",
     "The website is unavailable or behaving incorrectly.",
@@ -443,11 +428,9 @@ const customFieldFor = (requestTypeName, index) => {
 
     case "Cannot log in":
     case "Account locked":
-      return {
-        accountEmail: `customer${(index % 6) + 1}@example.com`,
-      };
+      return {};
 
-    case "Change account information":
+        case "Change account information":
       return {
         changeRequested: "Update my phone number and profile information.",
       };
