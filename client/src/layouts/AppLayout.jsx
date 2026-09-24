@@ -116,7 +116,7 @@ export default function AppLayout() {
     <div
       className={`bg-[#f4f6f8] text-slate-900 ${
         location.pathname === "/help"
-          ? "h-screen overflow-hidden"
+          ? "min-h-screen overflow-y-auto lg:h-screen lg:overflow-hidden"
           : "min-h-screen"
       }`}
     >
@@ -385,32 +385,14 @@ export default function AppLayout() {
       </header>
 
       <main
-        className={`min-h-0 pb-[55px] ${
+        className={`min-h-0 ${
           location.pathname === "/help"
-            ? "h-[calc(100vh-64px)] overflow-hidden"
+            ? "min-h-[calc(100vh-64px)] lg:h-[calc(100vh-64px)] lg:overflow-hidden"
             : ""
         }`}
       >
         <Outlet />
       </main>
-
-      <footer className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-700 text-white">
-              <Headphones className="h-3.5 w-3.5" />
-            </span>
-
-            <span className="text-xs text-slate-500">
-              Helpdesk Support Portal
-            </span>
-          </div>
-
-          <span className="text-xs text-slate-400">
-            Tickets · Knowledge base · Support workflows
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }
