@@ -2,7 +2,21 @@
 
 A full-stack customer support and helpdesk platform built with React, Node.js, Express, MongoDB, Redis, BullMQ, and Socket.IO.
 
-The application provides a customer-facing Help Center, structured ticket creation, department-based routing, support workflows, real-time notifications, SLA monitoring, attachments, saved replies, analytics, and role-based access control.
+The application provides a customer-facing Help Center, structured ticket creation, department-based routing, role-based support workflows, real-time notifications, SLA monitoring, cloud-hosted attachments, email notifications, saved replies, analytics, and role-based access control.
+
+## Live Demo
+
+**Frontend:**  
+https://customer-support-helpdesk-virid.vercel.app
+
+**Backend:**  
+https://customer-support-helpdesk-1.onrender.com
+
+**API Health Check:**  
+https://customer-support-helpdesk-1.onrender.com/api/health
+
+**GitHub:**  
+https://github.com/AdityaYe/customer-support-helpdesk
 
 ## Features
 
@@ -12,7 +26,7 @@ The application provides a customer-facing Help Center, structured ticket creati
 - Guided ticket creation with department and request-type routing
 - Customer ticket dashboard and ticket conversations
 - Public replies and satisfaction ratings
-- Protected ticket attachments
+- Protected ticket attachments stored in Cloudinary
 
 ### Support Operations
 
@@ -35,6 +49,23 @@ The application provides a customer-facing Help Center, structured ticket creati
 - BullMQ delayed jobs for SLA breach checks
 - Priority-based SLA targets and monitoring
 
+### Notifications
+
+- In-app notifications
+- Real-time notifications through Socket.IO
+- Email notifications through Resend
+- SLA breach notifications
+- Read/unread notification tracking
+
+### Attachments
+
+- Multi-file ticket attachments
+- File type and size validation
+- Cloudinary object storage
+- Ticket-level authorization
+- Internal attachment visibility controls
+- Protected attachment access
+
 ## Tech Stack
 
 ### Frontend
@@ -50,7 +81,7 @@ The application provides a customer-facing Help Center, structured ticket creati
 ### Backend
 
 - Node.js
-- Express
+- Express 4
 - MongoDB
 - Mongoose
 - JWT
@@ -58,6 +89,8 @@ The application provides a customer-facing Help Center, structured ticket creati
 - BullMQ
 - Redis / ioredis
 - Multer
+- Cloudinary
+- Resend
 
 ### Testing
 
@@ -140,28 +173,6 @@ SLA targets are based on ticket priority:
 Ticket creation schedules delayed SLA checks through BullMQ and Redis. Workers re-check the latest ticket state before generating breach notifications.
 
 Changing ticket priority also recalculates the SLA deadlines and schedules the corresponding checks.
-
-## Notifications
-
-Notifications are:
-
-- Queued through BullMQ
-- Persisted in MongoDB
-- Delivered in real time through Socket.IO
-- Sent by email through Resend
-- Available through the notification REST API
-- Tracked with read/unread state
-
-This keeps notification processing separate from the main request cycle.
-
-## Attachments
-
-- Multi-file ticket attachments
-- File type and size validation
-- Cloudinary object storage
-- Ticket-level authorization
-- Internal attachment visibility controls
-- Protected attachment access
 
 ## Setup
 
@@ -270,7 +281,8 @@ The seed script creates users for each application role.
 
 | Role            | Email                       |
 | --------------- | --------------------------- |
-| Customer        | `customer@example.com`      |
+| Customer        | `customer1@example.com`     |
+| Customer        | `customer2@example.com`     |
 | Billing Agent   | `billing.agent@example.com` |
 | Technical Agent | `tech.agent@example.com`    |
 | Manager         | `manager@example.com`       |
@@ -322,26 +334,30 @@ The test suite covers:
 
 ## Security
 
-The application includes:
-
 - JWT authentication with HTTP-only cookies
+- Secure cross-site cookies in production
 - Role-based authorization
 - Department-level ticket access control
+- Ticket ownership and assignment rules
+- Server-side workflow validation
 - Helmet security headers
 - CORS restrictions
 - Authentication rate limiting
 - Request body size limits
-- Protected attachment downloads
-- Server-side validation of ticket operations
+- Protected attachment access
 - Password hashing with bcrypt
 
 ## Project Structure
 
 ```text
 customer-support-helpdesk/
+
 ├── client/
+│   ├── public/
+│   │   └── favicon.svg
 │   ├── src/
 │   ├── .env.example
+│   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
 │
@@ -359,45 +375,74 @@ customer-support-helpdesk/
 │   ├── .env.example
 │   └── package.json
 │
+├── client/vercel.json
+├── render.yaml
 ├── .gitignore
 └── README.md
 ```
 
+## Deployment
+
+### Frontend
+
+Deployed on **Vercel**.
+
+```text
+https://customer-support-helpdesk-virid.vercel.app
+```
+
+### Backend
+
+Deployed on **Render**.
+
+```text
+https://customer-support-helpdesk-1.onrender.com
+```
+
+### Infrastructure
+
+```text
+                   ┌──────────────────────┐
+                   │        Vercel        │
+                   │    React Frontend    │
+                   └──────────┬───────────┘
+                              │
+                              ▼
+                   ┌──────────────────────┐
+                   │       Render         │
+                   │     Express API      │
+                   └──────┬─────┬─────────┘
+                          │     │
+                ┌─────────┘     └───────────────┐
+                ▼                               ▼
+      ┌──────────────────┐             ┌──────────────────┐
+      │   MongoDB Atlas  │             │ Render Key Value │
+      │ Persistent Data  │             │ Redis / BullMQ   │
+      └──────────────────┘             └──────────────────┘
+                          │
+                 ┌────────┴────────┐
+                 ▼                 ▼
+        ┌────────────────┐  ┌───────────────┐
+        │   Cloudinary   │  │    Resend     │
+        │   Attachments  │  │    Email      │
+        └────────────────┘  └───────────────┘
+```
+
 ## Production Considerations
 
-Before deploying to production:
-
 - Use a strong `JWT_SECRET`
-- Configure production MongoDB and Redis instances
-- Set `CLIENT_URL` to the deployed frontend origin
-- Run the application over HTTPS
-- Replace local file uploads with persistent object storage
-- Review dependency security advisories
-- Replace seeded demo credentials with real accounts
+- Configure production MongoDB and Redis
+- Configure Cloudinary and Resend credentials
+- Use HTTPS and a production frontend origin
+- Replace seeded demo credentials
+- Add production monitoring and logging
 
 ## Current Limitations
 
 - Admin interface is intentionally lightweight
-- No production deployment configuration is included
-- Email and Cloudinary integrations require their respective provider accounts and credentials
-
-## Project Status
-
-The project currently includes:
-
-- MERN architecture
-- Redis + BullMQ background processing
-- Real-time Socket.IO updates
-- SLA monitoring
-- Role-based support workflows
-- Customer Help Center
-- Agent, manager, and admin workspaces
-- Knowledge base management
-- Saved replies
-- Ticket activity and internal notes
-- Resend email notifications
-- Cloudinary attachment storage
-- Backend integration tests
+- Free Redis / Key Value storage is intended for hobby/demo workloads
+- No dedicated production monitoring dashboard is included
+- Email and Cloudinary integrations require external provider accounts
 
 ## License
 
